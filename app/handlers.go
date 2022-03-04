@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 )
 
@@ -13,14 +14,14 @@ type Customer struct {
 	ZipCode string `json:"zipCode" xml:"zipcode"`
 }
 
-func greet(writer http.ResponseWriter, request *http.Request) {
+func greet(writer http.ResponseWriter, _ *http.Request) {
 	_, err := fmt.Fprint(writer, "Hello guys!")
 	if err != nil {
 		return
 	}
 }
 
-func getCustomer(writer http.ResponseWriter, request *http.Request) {
+func getAllCustomers(writer http.ResponseWriter, request *http.Request) {
 	customer := []Customer{
 		{"SomeName", "Tashkent", "100008"},
 		{"SomeName", "Tashkent", "100008"},
@@ -41,4 +42,13 @@ func getCustomer(writer http.ResponseWriter, request *http.Request) {
 		}
 	}
 
+}
+
+func getCustomer(writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+
+	_, err := fmt.Fprint(writer, vars["customer_id"])
+	if err != nil {
+		return
+	}
 }
