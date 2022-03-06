@@ -1,6 +1,7 @@
 package app
 
 import (
+	"banking/service"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -16,21 +17,19 @@ type Customer struct {
 	ZipCode string `json:"zipCode" xml:"zipcode"`
 }
 
-func greet(writer http.ResponseWriter, _ *http.Request) {
-	_, err := fmt.Fprint(writer, "Hello guys!")
-	if err != nil {
-		return
-	}
-}
-
 type DefaultTime struct {
 	CurrentTime string `json:"current_time"`
 }
 
-func getAllCustomers(writer http.ResponseWriter, request *http.Request) {
-	customer := []Customer{
-		{"SomeName", "Tashkent", "100008"},
-		{"SomeName", "Tashkent", "100008"},
+type CustomerHandlers struct {
+	service service.CustomerService
+}
+
+func (ch *CustomerHandlers) getAllCustomers(writer http.ResponseWriter, request *http.Request) {
+	customer, err := ch.service.GetAllCustomer()
+
+	if err != nil {
+		return
 	}
 
 	contentType := request.Header.Get("Content-Type")
