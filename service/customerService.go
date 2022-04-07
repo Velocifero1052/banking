@@ -15,5 +15,5 @@ func (s DefaultCustomerService) GetAllCustomer() ([]domain.Customer, error) {
 }
 
 func NewCustomerService(repository domain.CustomerRepository) DefaultCustomerService {
-	return DefaultCustomerService{repository: repository}
+	return DefaultCustomerService{repository}
 }

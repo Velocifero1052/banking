@@ -1,14 +1,16 @@
+
+
+
 CREATE TABLE customers (
                             customer_ID INT PRIMARY KEY NOT NULL,
-                            name char(100) NOT NULL,
+                            name varchar(100) NOT NULL,
                             date_of_birth date NOT NULL,
-                            city char(100) NOT NULL,
-                            zipcode char(10) NOT NULL,
+                            city varchar(100) NOT NULL,
+                            zipcode varchar(10) NOT NULL,
                             status int NOT NULL DEFAULT '1'
 );
 
-INSERT INTO customers VALUES
-                            (2000,'Steve','1978-12-15','Delhi','110075',1),
+INSERT INTO customers VALUES(2000,'Steve','1978-12-15','Delhi','110075',1),
                             (2001,'Arian','1988-05-21','Newburgh, NY','12550',1),
                             (2002,'Hadley','1988-04-30','Englewood, NJ','07631',1),
                             (2003,'Ben','1988-01-04','Manchester, NH','03102',0),
