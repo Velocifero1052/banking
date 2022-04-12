@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
+	"log"
 	"time"
 )
 
@@ -20,10 +21,10 @@ const (
 )
 
 func (d CustomerRepositoryDb) FindAll() ([]Customer, error) {
-	db := NewCustomerRepositoryDb()
+
 	findAllSql := `select customer_id, name, date_of_birth, city, zipcode, status from customers`
 
-	rows, err := db.client.Query(findAllSql)
+	rows, err := d.client.Query(findAllSql)
 
 	CheckError(err)
 	customers := make([]Customer, 0)
@@ -39,6 +40,25 @@ func (d CustomerRepositoryDb) FindAll() ([]Customer, error) {
 
 	}
 	return customers, nil
+}
+
+func (d CustomerRepositoryDb) ById(id string) (*Customer, error) {
+
+	customerSql := "select customer_id, name, date_of_birth, city, zipcode, status from customers where customer_id = $1"
+
+	row := d.client.QueryRow(customerSql, id)
+
+	var customer Customer
+
+	err := row.Scan(&customer.Id, &customer.Name, &customer.DateOfBirth, &customer.City, &customer.ZipCode,
+		&customer.Status)
+
+	if err != nil {
+		log.Println("Error while scanning customer " + err.Error())
+		return nil, err
+	}
+
+	return &customer, nil
 }
 
 func CheckError(err error) {
