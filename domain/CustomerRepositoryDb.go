@@ -1,15 +1,17 @@
 package domain
 
 import (
+	errs "banking/errors"
+	"banking/logger"
 	"database/sql"
 	"fmt"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"log"
 	"time"
 )
 
 type CustomerRepositoryDb struct {
-	client *sql.DB
+	client *sqlx.DB
 }
 
 const (
@@ -20,42 +22,42 @@ const (
 	dbname   = "banking_db"
 )
 
-func (d CustomerRepositoryDb) FindAll() ([]Customer, error) {
+func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError) {
 
-	findAllSql := `select customer_id, name, date_of_birth, city, zipcode, status from customers`
+	var findSql string
+	var err error
 
-	rows, err := d.client.Query(findAllSql)
-
-	CheckError(err)
 	customers := make([]Customer, 0)
-	for rows.Next() {
-		var customer Customer
 
-		err = rows.Scan(&customer.Id, &customer.Name, &customer.DateOfBirth, &customer.City, &customer.ZipCode,
-			&customer.Status)
-
-		CheckError(err)
-
-		customers = append(customers, customer)
-
+	if status != "" {
+		findSql = `select customer_id, name, date_of_birth, city, zipcode, status from customers where status = $1`
+		err = d.client.Select(&customers, findSql)
+	} else {
+		findSql = `select customer_id, name, date_of_birth, city, zipcode, status from customers`
+		err = d.client.Select(&customers, findSql)
 	}
+
+	if err != nil {
+		logger.Error("error while executing query")
+		return nil, errs.NewInternalServerError("error while executing query")
+	}
+
 	return customers, nil
 }
 
-func (d CustomerRepositoryDb) ById(id string) (*Customer, error) {
+func (d CustomerRepositoryDb) ById(id string) (*Customer, *errs.AppError) {
 
 	customerSql := "select customer_id, name, date_of_birth, city, zipcode, status from customers where customer_id = $1"
-
-	row := d.client.QueryRow(customerSql, id)
-
 	var customer Customer
 
-	err := row.Scan(&customer.Id, &customer.Name, &customer.DateOfBirth, &customer.City, &customer.ZipCode,
-		&customer.Status)
+	err := d.client.Get(&customer, customerSql, id)
 
 	if err != nil {
-		log.Println("Error while scanning customer " + err.Error())
-		return nil, err
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("customer not found")
+		}
+		logger.Error("Error while scanning customer " + err.Error())
+		return nil, errs.NewInternalServerError("unexpected database error")
 	}
 
 	return &customer, nil
@@ -69,7 +71,7 @@ func CheckError(err error) {
 
 func NewCustomerRepositoryDb() CustomerRepositoryDb {
 	psqlConn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-	client, err := sql.Open("postgres", psqlConn)
+	client, err := sqlx.Open("postgres", psqlConn)
 	CheckError(err)
 
 	client.SetConnMaxLifetime(time.Minute * 3)
