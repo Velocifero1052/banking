@@ -10,9 +10,9 @@ import (
 
 func Start() {
 	router := mux.NewRouter()
-
+	customersDb := domain.NewCustomerRepositoryDb()
 	//wiring
-	customerHandlers := CustomerHandlers{service.NewCustomerService(domain.NewCustomerRepositoryDb())}
+	customerHandlers := CustomerHandlers{service.NewCustomerService(customersDb)}
 
 	router.HandleFunc("/customers", customerHandlers.getAllCustomers)
 	router.HandleFunc("/customers/{customer_id:[0-9]+}", customerHandlers.getCustomer)
