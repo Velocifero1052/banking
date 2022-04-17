@@ -4,23 +4,13 @@ import (
 	errs "banking/errors"
 	"banking/logger"
 	"database/sql"
-	"fmt"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"time"
 )
 
 type CustomerRepositoryDb struct {
 	client *sqlx.DB
 }
-
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "postgres"
-	dbname   = "banking_db"
-)
 
 func (d CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError) {
 
@@ -63,19 +53,6 @@ func (d CustomerRepositoryDb) ById(id string) (*Customer, *errs.AppError) {
 	return &customer, nil
 }
 
-func CheckError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-func NewCustomerRepositoryDb() CustomerRepositoryDb {
-	psqlConn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-	client, err := sqlx.Open("postgres", psqlConn)
-	CheckError(err)
-
-	client.SetConnMaxLifetime(time.Minute * 3)
-	client.SetMaxOpenConns(10)
-	client.SetMaxIdleConns(10)
+func NewCustomerRepositoryDb(client *sqlx.DB) CustomerRepositoryDb {
 	return CustomerRepositoryDb{client}
 }
